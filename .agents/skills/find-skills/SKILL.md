@@ -64,11 +64,21 @@ For example:
 
 ### Step 4: Verify Quality Before Recommending
 
-**Do not recommend a skill based solely on search results.** Always verify:
+**Do not recommend a skill based solely on search results.** Only recommend a skill if it passes all of these checks. If you cannot verify a check, say so and do not recommend the skill as safe.
 
-1. **Install count** — Prefer skills with 1K+ installs. Be cautious with anything under 100.
-2. **Source reputation** — Official sources (`vercel-labs`, `anthropics`, `microsoft`) are more trustworthy than unknown authors.
-3. **GitHub stars** — Check the source repository. A skill from a repo with <100 stars should be treated with skepticism.
+1. **Install count**: Must be shown and at least 1K installs. Anything under 1K is not recommended. If no count can be found, do not recommend it.
+2. **Source reputation**: The publisher should be the official owner of the tool or library (for example `greensock/gsap-skills` for GSAP, `vercel-labs` for Vercel tools, `anthropics` for Anthropic skills), or a publisher with a verifiable track record. Unknown individual uploaders are not recommended.
+3. **GitHub stars**: The source repository should have at least 1K stars. Under 100 is rejected. Between 100 and 1K must be flagged as unverified.
+4. **Contents**: The skill should be a markdown instruction file. Flag or reject any skill that includes scripts, hooks, binaries, package installs, `curl`/`wget`, reads or sends credentials, SSH keys, browser data, or files outside the project, or asks for elevated permissions.
+5. **Scope fit**: The skill's description should match the request. Do not recommend a skill that only partially covers the task without saying so.
+
+If a skill fails check 4, reject it, even if checks 1 to 3 pass.
+
+If the skills CLI cannot be reached or returns no results, say that the search failed. Do not invent install counts or star counts.
+
+### Step 4a: Read Before Installing
+
+Before any install, read the skill's `SKILL.md` and list every file the skill includes. Summarize what it tells the agent to do and any red flags from the checklist above.
 
 ### Step 5: Present Options to the User
 
@@ -92,15 +102,15 @@ npx skills add vercel-labs/agent-skills@react-best-practices
 Learn more: https://skills.sh/vercel-labs/agent-skills/react-best-practices
 ```
 
-### Step 6: Offer to Install
+### Step 6: Install Only With Explicit Approval
 
-If the user wants to proceed, you can install the skill for them:
+Never install a skill without the user's explicit approval for that specific skill. Do not use `-y` or `-g`. Install into the project so the user can review and remove it:
 
 ```bash
-npx skills add <owner/repo@skill> -g -y
+npx skills add <owner/repo@skill>
 ```
 
-The `-g` flag installs globally (user-level) and `-y` skips confirmation prompts.
+After installing, report the installed path and the lock file entry, and tell the user that nothing is committed until they say so.
 
 ## Common Skill Categories
 
