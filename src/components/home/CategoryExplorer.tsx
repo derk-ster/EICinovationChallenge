@@ -7,12 +7,14 @@ import { categories, type CategoryId } from "@/content/competition";
 import { useGlTier } from "@/lib/client/effects";
 import { CategoryGlyph } from "./CategoryGlyph";
 
-const CategoryScene = dynamic(() => import("@/components/three/CategoryScene"), { ssr: false });
+const loadScene = () => import("@/components/three/CategoryScene");
+const CategoryScene = dynamic(loadScene, { ssr: false });
 
 export function CategoryExplorer() {
   const [active, setActive] = useState<CategoryId>(categories[0].id);
   const [near, setNear] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [ready, setReady] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const tier = useGlTier();
@@ -21,19 +23,26 @@ export function CategoryExplorer() {
   const current = categories.find((c) => c.id === active)!;
   const use3d = tier === "high" || tier === "low";
 
-  // Load the 3D stage only when it approaches the viewport; pause it when off-screen.
+  // Fetch the 3D code as soon as the page is idle, so it's ready before anyone scrolls here.
+  useEffect(() => {
+    if (!use3d) return;
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(() => void loadScene());
+    else setTimeout(() => void loadScene(), 1500);
+  }, [use3d]);
+
+  // Mount the stage well before it scrolls into view (two screens ahead); only render frames while visible.
   useEffect(() => {
     const el = stageRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        setVisible(entry.isIntersecting);
-        if (entry.isIntersecting) setNear(true);
-      },
-      { rootMargin: "400px 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
+    const mount = new IntersectionObserver(([e]) => e.isIntersecting && setNear(true), { rootMargin: "200% 0px" });
+    const run = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { rootMargin: "25% 0px" });
+    mount.observe(el);
+    run.observe(el);
+    return () => {
+      mount.disconnect();
+      run.disconnect();
+    };
   }, []);
 
   const onKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
@@ -89,9 +98,13 @@ export function CategoryExplorer() {
         className="lg:col-span-7 lg:pl-8"
       >
         <div ref={stageRef} className="relative aspect-[5/4] w-full border border-rule-dark bg-ink-2 blueprint sm:aspect-[16/10]">
-          {use3d && near ? (
-            <CategoryScene tier={tier} activeId={active} running={visible} />
-          ) : (
+          {use3d && near && (
+            <div className={`absolute inset-0 transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}>
+              <CategoryScene tier={tier} activeId={active} running={visible || !ready} onReady={() => setReady(true)} />
+            </div>
+          )}
+          {/* The line drawing shows immediately and stays until the 3D stage has rendered. */}
+          {!(use3d && ready) && (
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={active}

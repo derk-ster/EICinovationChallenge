@@ -1,6 +1,6 @@
 import type { CategoryId } from "@/content/competition";
 
-/** Line drawings matching the 3D category objects, for the non-WebGL view. */
+/** Line drawings matching the 3D category products, for the non-WebGL view and while 3D loads. */
 export function CategoryGlyph({ id, className = "" }: { id: CategoryId; className?: string }) {
   const common = {
     viewBox: "0 0 200 160",
@@ -14,73 +14,92 @@ export function CategoryGlyph({ id, className = "" }: { id: CategoryId; classNam
   };
   switch (id) {
     case "physical-product":
+      // over-ear headphones
       return (
         <svg {...common}>
-          <path d="M45 70 L100 50 L155 70 L100 90 Z" />
-          <path d="M45 70 V112 L100 132 L155 112 V70 M100 90 V132" />
-          <path d="M45 88 L100 108 L155 88" stroke="#52b78b" strokeWidth="5" opacity="0.9" />
-          <path d="M60 52 L100 38 L140 52 L100 66 Z" opacity="0.7" />
-          <circle cx="128" cy="104" r="5" />
+          <path d="M52 92 C52 40 148 40 148 92" strokeWidth="4" />
+          <path d="M64 70 C78 50 122 50 136 70" stroke="#5c5f64" strokeWidth="7" />
+          {[52, 148].map((x) => (
+            <g key={x}>
+              <ellipse cx={x} cy="104" rx="20" ry="26" fill="#2c2e32" />
+              <ellipse cx={x} cy="104" rx="12" ry="17" fill="#1d5c45" stroke="#52b78b" />
+            </g>
+          ))}
         </svg>
       );
     case "website-app":
+      // laptop + phone
       return (
         <svg {...common}>
-          <rect x="70" y="20" width="96" height="64" opacity="0.4" />
-          <rect x="55" y="36" width="96" height="64" opacity="0.65" />
-          <rect x="38" y="54" width="96" height="64" fill="#222326" />
-          <rect x="48" y="66" width="40" height="8" fill="#1d5c45" stroke="#52b78b" />
-          <path d="M48 84 H108 M48 94 H96" />
-          <rect x="100" y="102" width="24" height="9" stroke="#52b78b" />
+          <rect x="30" y="30" width="112" height="72" rx="5" fill="#222326" />
+          <rect x="37" y="37" width="98" height="58" fill="#ecebe6" stroke="none" />
+          <rect x="42" y="44" width="40" height="8" fill="#1b1c1e" stroke="none" />
+          <rect x="42" y="58" width="24" height="7" fill="#1d5c45" stroke="none" />
+          <rect x="96" y="44" width="34" height="28" fill="#b9bcc0" stroke="none" />
+          <path d="M20 112 H152 L144 120 H28 Z" fill="#2c2e32" />
+          <rect x="150" y="62" width="30" height="58" rx="6" fill="#222326" />
+          <rect x="154" y="70" width="22" height="16" rx="3" fill="#52b78b" stroke="none" />
         </svg>
       );
     case "business-startup":
+      // coin stacks with a rising trend line
       return (
         <svg {...common}>
-          <path d="M30 130 H170" />
-          {[22, 38, 54, 76, 100].map((h, i) => (
-            <rect key={i} x={40 + i * 26} y={130 - h} width="16" height={h} stroke={i === 4 ? "#52b78b" : undefined} fill={i === 4 ? "#1d5c45" : "none"} />
-          ))}
-          <path d="M44 100 L74 86 L100 74 L126 52 L152 26" strokeDasharray="3 4" opacity="0.6" />
+          <path d="M24 136 H176" />
+          {[2, 4, 7, 11].map((n, s) =>
+            Array.from({ length: n }, (_, i) => (
+              <ellipse
+                key={`${s}${i}`}
+                cx={52 + s * 32}
+                cy={130 - i * 8}
+                rx="13"
+                ry="4"
+                fill={s === 3 && i === n - 1 ? "#1d5c45" : "#2c2e32"}
+                stroke={s === 3 && i === n - 1 ? "#52b78b" : undefined}
+              />
+            )),
+          )}
+          <path d="M30 118 C70 110 100 84 158 34" stroke="#52b78b" strokeWidth="2.4" />
+          <path d="M148 32 L160 32 L158 44" stroke="#52b78b" strokeWidth="2.4" />
         </svg>
       );
     case "service":
+      // service bell with a ring wave
       return (
         <svg {...common}>
-          {[0, 1, 2, 3, 4, 5].map((i) => {
-            const a = (i / 6) * Math.PI * 2;
-            const x = 100 + Math.cos(a) * 58;
-            const y = 80 + Math.sin(a) * 44;
-            const a2 = ((i + 1) / 6) * Math.PI * 2;
-            return (
-              <g key={i}>
-                <path d={`M${x.toFixed(1)} ${y.toFixed(1)} L${(100 + Math.cos(a2) * 58).toFixed(1)} ${(80 + Math.sin(a2) * 44).toFixed(1)} M${x.toFixed(1)} ${y.toFixed(1)} L100 80`} opacity="0.55" />
-                <circle cx={x.toFixed(1)} cy={y.toFixed(1)} r="7" fill="#222326" />
-              </g>
-            );
-          })}
-          <circle cx="100" cy="80" r="13" fill="#1d5c45" stroke="#52b78b" />
+          <path d="M40 120 H160 L154 130 H46 Z" fill="#2c2e32" />
+          <path d="M56 116 C56 72 144 72 144 116 Z" fill="#222326" />
+          <path d="M72 96 C78 84 92 80 100 80" opacity="0.7" />
+          <path d="M100 66 V58 M90 56 H110" strokeWidth="2.4" />
+          <path d="M30 108 C24 96 24 84 32 72 M170 108 C176 96 176 84 168 72" stroke="#52b78b" opacity="0.8" />
         </svg>
       );
     case "software-tool":
+      // microcontroller board
       return (
         <svg {...common}>
-          <rect x="52" y="32" width="96" height="96" fill="#222326" />
-          <rect x="78" y="58" width="44" height="44" />
-          <rect x="91" y="71" width="18" height="18" fill="#1d5c45" stroke="#52b78b" />
+          <rect x="24" y="30" width="152" height="100" rx="8" fill="#1d5c45" stroke="#52b78b" />
+          <rect x="62" y="56" width="44" height="44" fill="#1b1c1e" />
           {[0, 1, 2, 3, 4].map((i) => (
-            <path key={i} d={`M${64 + i * 18} 32 V22 M${64 + i * 18} 128 V138 M52 ${44 + i * 18} H42 M148 ${44 + i * 18} H158`} />
+            <path key={i} d={`M${68 + i * 8} 56 V50 M${68 + i * 8} 100 V106 M62 ${62 + i * 8} H56 M106 ${62 + i * 8} H112`} />
           ))}
+          <circle cx="132" cy="58" r="8" fill="#2c2e32" />
+          <circle cx="152" cy="58" r="8" fill="#2c2e32" />
+          <rect x="128" y="88" width="30" height="10" fill="#2c2e32" />
+          <path d="M40 120 H160" strokeDasharray="2 4" />
+          <circle cx="160" cy="112" r="3" fill="#52b78b" stroke="none" />
         </svg>
       );
     case "improvement":
+      // rough bulb refining into a glowing modern bulb
       return (
         <svg {...common}>
-          <path d="M30 80 L50 52 L76 60 L82 92 L58 110 L34 100 Z" fill="#222326" />
-          <path d="M50 52 L58 80 L82 92 M58 80 L34 100 M58 80 L30 80" opacity="0.6" />
-          <path d="M96 80 H120 M114 74 L120 80 L114 86" stroke="#52b78b" />
-          <circle cx="152" cy="80" r="28" />
-          <path d="M136 68 a20 20 0 0 1 16 -8" opacity="0.8" />
+          <path d="M42 40 L66 34 L80 52 L76 76 L64 92 L46 92 L36 76 L32 54 Z" fill="#2c2e32" />
+          <path d="M46 92 V106 H64 V92" />
+          <path d="M92 70 H112 M106 64 L112 70 L106 76" stroke="#52b78b" />
+          <path d="M150 28 C176 28 186 54 172 76 C166 84 164 90 164 96 H136 C136 90 134 84 128 76 C114 54 124 28 150 28 Z" stroke="#ecebe6" />
+          <path d="M140 66 C144 58 156 58 160 66" stroke="#52b78b" strokeWidth="2.4" />
+          <path d="M136 100 H164 M138 106 H162 M141 112 H159" />
         </svg>
       );
   }
