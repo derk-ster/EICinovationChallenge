@@ -147,7 +147,6 @@ export function HomeStory({ status }: { status: ReactNode }) {
               </span>
             ))}
           </h1>
-          <StaticInvention className="mx-auto mt-8 h-72 w-auto md:hidden" />
           <div className="mt-8 grid gap-6 md:max-w-[34rem]">
             <p data-reveal data-hero-sub className="t-lead text-silver">
               {hero.supporting}
@@ -192,10 +191,10 @@ export function HomeStory({ status }: { status: ReactNode }) {
         </div>
 
         {/* Assembly sequence */}
-        <div className="shell">
+        <div className="shell pb-16 md:pb-0">
           {stages.map((stage, i) => (
-            <div key={stage.title} data-stage className="flex min-h-[85svh] items-center py-20">
-              <div className="max-w-[30rem] md:max-w-[34rem]">
+            <div key={stage.title} data-stage className="flex items-center py-8 md:min-h-[85svh] md:py-20">
+              <div className="max-w-[34rem] border-l border-rule-dark pl-6 md:border-0 md:pl-0">
                 <p data-stage-item className="t-num text-[1.05rem] text-emerald" aria-hidden>
                   {String(i + 1).padStart(2, "0")} / {String(stages.length).padStart(2, "0")}
                 </p>
@@ -205,6 +204,9 @@ export function HomeStory({ status }: { status: ReactNode }) {
                 <p data-stage-item className="t-lead mt-6 text-silver">
                   {stage.body}
                 </p>
+                {i === stages.length - 1 && (
+                  <StaticInvention className="mt-8 h-60 w-auto max-w-full md:hidden" />
+                )}
                 {i === stages.length - 1 && (
                   <div data-stage-item className="mt-10">
                     <Link
