@@ -6,6 +6,7 @@ import { HeroStatus } from "@/components/home/HeroStatus";
 import { CategoryExplorer } from "@/components/home/CategoryExplorer";
 import { PrizeStage } from "@/components/home/PrizeStage";
 import { Timeline } from "@/components/home/Timeline";
+import { CtaTrend } from "@/components/home/CtaTrend";
 import { Reveal } from "@/components/motion/Reveal";
 import { RubricBar } from "@/components/ui/RubricBar";
 
@@ -192,11 +193,14 @@ export default function HomePage() {
 
       {/* Closing CTA */}
       <section aria-labelledby="cta-title" className="surface-dark grain blueprint py-28 md:py-36">
-        <div className="shell flex flex-col items-start gap-10 md:flex-row md:items-end md:justify-between">
-          <h2 id="cta-title" className="t-display max-w-[9ch] text-paper">
+        <div className="shell grid items-end gap-12 lg:grid-cols-12">
+          <h2 id="cta-title" className="t-display max-w-[9ch] text-paper lg:col-span-5">
             Your idea goes here.
           </h2>
-          <div className="flex flex-col gap-4 md:items-end">
+          <div className="lg:col-span-4">
+            <CtaTrend />
+          </div>
+          <div className="flex flex-col items-start gap-4 lg:col-span-3 lg:items-end">
             <Link href="/submit" className="focus-light inline-flex h-14 items-center bg-paper px-8 font-semibold text-ink hover:bg-white">
               Submit Your Idea
             </Link>

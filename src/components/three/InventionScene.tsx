@@ -392,6 +392,20 @@ function buildParts(): PartDef[] {
       window: [0.52, 0.7],
     },
   );
+
+  // Build order: parts drift as loose pieces through the first stage, then lock in
+  // in a mixed order (a skid, a prop, a motor...) so the drone only becomes
+  // recognizable late in the sequence, and is finished just before it flies.
+  const order = [
+    "skid-l", "prop-rr", "motor-fl", "arm-rr", "antennas", "battery", "prop-fl",
+    "arm-fl", "motor-rr", "skid-r", "gimbal", "motor-rl", "arm-rl", "canopy",
+    "prop-rl", "body", "arm-fr", "motor-fr", "prop-fr",
+  ];
+  const byKey = new Map(parts.map((d) => [d.key, d]));
+  order.forEach((key, i) => {
+    const d = byKey.get(key);
+    if (d) d.window = [0.36 + i * 0.019, 0.36 + i * 0.019 + 0.13];
+  });
   return parts;
 }
 
@@ -501,7 +515,7 @@ function Blueprint({ progress }: { progress: RefObject<number> }) {
   useFrame(() => {
     const p = progress.current ?? 0;
     const show = 0.34 * smooth(clamp01(p / 0.08));
-    const release = smooth(clamp01((p - 0.8) / 0.16));
+    const release = smooth(clamp01((p - 0.84) / 0.14));
     edges.forEach(({ line, out, spin }) => {
       line.position.copy(out).multiplyScalar(release * 2.2);
       line.rotation.y = release * spin;
@@ -581,8 +595,8 @@ function Rig({ progress, run, tier, children }: { progress: RefObject<number>; r
     const offsetX = aspect > 1.15 ? visibleW * 0.235 : 0;
 
     // Run phase: props spin up, then the drone lifts off its shadow.
-    run.spin = smooth(clamp01((p - 0.83) / 0.09));
-    run.lift = smooth(clamp01((p - 0.88) / 0.1));
+    run.spin = smooth(clamp01((p - 0.85) / 0.07));
+    run.lift = smooth(clamp01((p - 0.89) / 0.09));
 
     const g = group.current;
     if (g) {

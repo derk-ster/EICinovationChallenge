@@ -240,3 +240,44 @@ button {
   opacity: 1 !important;
   transform: none !important;
 }
+
+/* Closing CTA trend: draws itself once in view; static and complete with reduced motion. */
+.cta-trend-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.6s var(--ease-out-expo);
+}
+.cta-trend-area {
+  opacity: 0;
+  transition: opacity 1.2s ease 0.8s;
+}
+.cta-trend-head,
+.cta-trend-step {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.cta-trend-head {
+  transition-delay: 1.3s;
+}
+.cta-trend.is-shown .cta-trend-line {
+  stroke-dashoffset: 0;
+}
+.cta-trend.is-shown .cta-trend-area {
+  opacity: 0.1;
+}
+.cta-trend.is-shown .cta-trend-head,
+.cta-trend.is-shown .cta-trend-step {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-trend-line {
+    stroke-dashoffset: 0;
+  }
+  .cta-trend-area {
+    opacity: 0.1;
+  }
+  .cta-trend-head,
+  .cta-trend-step {
+    opacity: 1;
+  }
+}

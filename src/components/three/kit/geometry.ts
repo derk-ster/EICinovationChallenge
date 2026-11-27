@@ -14,7 +14,7 @@ export function lathe(points: [number, number][], segments = 64) {
     points.map(([r, y]) => v2(r, y)),
     segments,
   );
-  g.computeVertexNormals();
+  // LatheGeometry builds seam-aware normals itself; recomputing them would leave a visible seam line.
   return g;
 }
 

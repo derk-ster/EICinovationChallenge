@@ -20,7 +20,7 @@ import { StudioEnvironment } from "./StudioEnvironment";
  *  business         → stacks of coins with a rising trend line
  *  service          → a service bell that rings
  *  technology       → a microcontroller board
- *  improvement      → a rough bulb that refines into a glowing modern one
+ *  improvement      → a dull bulb that turns clear and lights up
  * The active product turns into view; the others shrink away.
  */
 
@@ -171,7 +171,7 @@ function Devices({ k }: { k: Kit }) {
         </group>
       </group>
       {/* phone leaning in front */}
-      <group position={[1.12, -0.15, 0.5]} rotation={[-0.25, -0.35, 0.08]}>
+      <group position={[1.5, -0.15, 0.55]} rotation={[-0.25, -0.35, 0.08]}>
         <mesh geometry={geo.phone} material={k.graphite} rotation={[Math.PI / 2, 0, 0]} />
         <mesh position={[0, 0, 0.026]} material={phoneMat}>
           <planeGeometry args={[0.42, 0.88]} />
@@ -425,13 +425,11 @@ function Board({ k }: { k: Kit }) {
   );
 }
 
-/* ------------------------------------------------------------ bulb refinement */
+/* ------------------------------------------------------------ bulb improvement */
 
 function Bulb({ k }: { k: Kit }) {
-  const oldRef = useRef<THREE.Group>(null);
-  const newRef = useRef<THREE.Group>(null);
   const light = useRef<THREE.PointLight>(null);
-  const { glass, glassOld, oldMat, filament, filamentMat, base, thread, stem, supports, contact } = useMemo(() => {
+  const m = useMemo(() => {
     const profile: [number, number][] = [
       [0.17, 0.3],
       [0.2, 0.38],
@@ -442,19 +440,40 @@ function Bulb({ k }: { k: Kit }) {
       [0.23, 1.22],
       [0, 1.255],
     ];
-    const glassMat = k.glass.clone();
-    glassMat.side = THREE.DoubleSide;
-    const oldMat = new THREE.MeshStandardMaterial({ color: "#55595f", roughness: 0.9, metalness: 0.05, flatShading: true });
-    const filamentMat = new THREE.MeshStandardMaterial({ color: "#1a2a22", emissive: "#bfffe0", emissiveIntensity: 0.2 });
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: "#8d9298",
+      roughness: 0.5,
+      metalness: 0,
+      clearcoat: 1,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      emissive: "#bfffe0",
+      emissiveIntensity: 0,
+    });
+    const filamentMat = new THREE.MeshStandardMaterial({ color: "#2a2f2c", emissive: "#bfffe0", emissiveIntensity: 0.05 });
     const coil = helix(0.03, 0.34, 9, 0.008);
     coil.rotateZ(Math.PI / 2);
     coil.translate(0.17, 0.82, 0);
+    const support = (sx: number) =>
+      tube(
+        [
+          [0, 0.62, 0],
+          [sx * 0.08, 0.72, 0],
+          [sx * 0.17, 0.82, 0],
+        ],
+        0.006,
+        24,
+        6,
+      );
     return {
-      glass: { geo: lathe(profile, 64), mat: glassMat },
-      glassOld: lathe(profile, 7),
-      oldMat,
-      filament: coil,
+      glassMat,
       filamentMat,
+      dull: new THREE.Color("#8d9298"),
+      clear: new THREE.Color("#f2f7f4"),
+      glass: lathe(profile, 72),
+      filament: coil,
       base: lathe([
         [0, 0],
         [0.17, 0],
@@ -464,36 +483,15 @@ function Bulb({ k }: { k: Kit }) {
       thread: helix(0.172, 0.24, 4, 0.016, 0.03),
       stem: tube(
         [
-          [0, 0.3],
-          [0, 0.55],
-          [0, 0.66],
-        ].map(([x, y]) => [x, y, 0] as [number, number, number]),
+          [0, 0.3, 0],
+          [0, 0.5, 0],
+          [0, 0.64, 0],
+        ],
         0.04,
         24,
         16,
       ),
-      supports: [
-        tube(
-          [
-            [0, 0.62, 0],
-            [-0.08, 0.72, 0],
-            [-0.17, 0.82, 0],
-          ],
-          0.006,
-          24,
-          6,
-        ),
-        tube(
-          [
-            [0, 0.62, 0],
-            [0.08, 0.72, 0],
-            [0.17, 0.82, 0],
-          ],
-          0.006,
-          24,
-          6,
-        ),
-      ],
+      supports: [support(-1), support(1)],
       contact: lathe([
         [0, -0.06],
         [0.08, -0.06],
@@ -502,36 +500,37 @@ function Bulb({ k }: { k: Kit }) {
         [0, 0],
       ]),
     };
-  }, [k]);
+  }, []);
+  useEffect(
+    () => () => {
+      m.glassMat.dispose();
+      m.filamentMat.dispose();
+    },
+    [m],
+  );
   useFrame((s) => {
-    // Rough version → refined version → lights up → back again.
-    const t = (s.clock.elapsedTime * 0.28) % 2;
-    const refine = THREE.MathUtils.smoothstep(t, 0.35, 0.75) * (1 - THREE.MathUtils.smoothstep(t, 1.7, 2));
-    const glow = THREE.MathUtils.smoothstep(t, 0.8, 1.05) * (1 - THREE.MathUtils.smoothstep(t, 1.6, 1.75));
-    oldRef.current?.scale.setScalar(Math.max(0.0001, 1 - refine));
-    newRef.current?.scale.setScalar(Math.max(0.0001, refine));
-    if (oldRef.current) oldRef.current.rotation.y = s.clock.elapsedTime * 0.4;
-    filamentMat.emissiveIntensity = 0.2 + glow * 4;
-    if (light.current) light.current.intensity = glow * 4;
+    // Before: a dull, frosted bulb that's off. After: clear glass with the filament glowing. Then it resets.
+    const t = (s.clock.elapsedTime * 0.3) % 2;
+    const on = THREE.MathUtils.smoothstep(t, 0.35, 0.8) * (1 - THREE.MathUtils.smoothstep(t, 1.55, 1.95));
+    m.glassMat.color.lerpColors(m.dull, m.clear, on);
+    m.glassMat.roughness = 0.5 - 0.46 * on;
+    m.glassMat.opacity = 0.9 - 0.62 * on;
+    m.glassMat.emissiveIntensity = on * 0.18;
+    m.filamentMat.emissiveIntensity = 0.05 + on * 4.5;
+    if (light.current) light.current.intensity = on * 5;
   });
   return (
     <group position={[0, -0.95, 0]} scale={1.4}>
-      <group ref={oldRef}>
-        <mesh geometry={glassOld} material={oldMat} />
-        <mesh geometry={base} material={oldMat} />
-      </group>
-      <group ref={newRef}>
-        <mesh geometry={glass.geo} material={glass.mat} />
-        <mesh geometry={stem} material={glass.mat} />
-        {supports.map((g, i) => (
-          <mesh key={i} geometry={g} material={k.steel} />
-        ))}
-        <mesh geometry={filament} material={filamentMat} />
-        <mesh geometry={base} material={k.aluminium} />
-        <mesh geometry={thread} material={k.aluminium} />
-        <mesh geometry={contact} material={k.carbon} />
-        <pointLight ref={light} position={[0, 0.82, 0]} color="#bfffe0" intensity={0} distance={3} decay={2} />
-      </group>
+      <mesh geometry={m.stem} material={m.glassMat} />
+      {m.supports.map((g, i) => (
+        <mesh key={i} geometry={g} material={k.steel} />
+      ))}
+      <mesh geometry={m.filament} material={m.filamentMat} />
+      <mesh geometry={m.glass} material={m.glassMat} />
+      <mesh geometry={m.base} material={k.aluminium} />
+      <mesh geometry={m.thread} material={k.aluminium} />
+      <mesh geometry={m.contact} material={k.carbon} />
+      <pointLight ref={light} position={[0, 0.82, 0]} color="#bfffe0" intensity={0} distance={3} decay={2} />
     </group>
   );
 }
