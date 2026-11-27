@@ -1,26 +1,242 @@
 @import "tailwindcss";
 
+/*
+ * EIC visual system
+ * Charcoal + warm off-white, machined silver, one controlled forest/emerald accent.
+ * One typeface (Archivo, variable width) — the width axis carries the expression:
+ * condensed for headlines, expanded for the wordmark, normal for reading.
+ */
+
+@theme {
+  --color-ink: #1b1c1e;
+  --color-ink-2: #222326;
+  --color-ink-3: #2c2e32;
+  --color-rule-dark: #3b3d42;
+  --color-paper: #ecebe6;
+  --color-paper-2: #e2e0da;
+  --color-rule: #c9c6be;
+  --color-silver: #b7babe;
+  --color-mist: #9da1a6;
+  --color-stone: #595c61;
+  --color-forest: #1d5c45;
+  --color-forest-2: #154634;
+  --color-emerald: #52b78b;
+  --color-danger: #a3362b;
+  --color-danger-dark: #e58a7f;
+  --color-amber: #8a5a10;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --gutter: clamp(1rem, 4vw, 2.75rem);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 5rem;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  font-feature-settings: "ss01", "kern";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Custom classes avoid properties that Tailwind utilities on the same element need to control. */
+/* Subtle paper grain on light surfaces, machined grain on dark ones. */
+.grain {
+  isolation: isolate;
+}
+/* Positioned for the grain overlay, unless a utility already positions it (e.g. a fixed menu panel). */
+.grain:not(.fixed, .absolute, .sticky) {
+  position: relative;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.surface-dark {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* Blueprint grid used behind the hero and prize. */
+.blueprint {
+  background-image:
+    linear-gradient(to right, rgb(236 235 230 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(236 235 230 / 0.045) 1px, transparent 1px);
+  background-size: 88px 88px;
+  background-position: -1px -1px;
+}
+
+/* ---------- Type scale ---------- */
+.t-display {
+  /* Scales with width, but also height so short laptop screens keep the hero facts in view. */
+  font-size: clamp(3.1rem, min(9.2vw, 13vh), 10rem);
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  font-weight: 640;
+  font-stretch: 78%;
+}
+.t-h2 {
+  font-size: clamp(2.35rem, 5.4vw, 5.25rem);
+  line-height: 0.93;
+  letter-spacing: -0.032em;
+  font-weight: 620;
+  font-stretch: 82%;
+}
+.t-h3 {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  line-height: 1.12;
+  letter-spacing: -0.012em;
+  font-weight: 600;
+  font-stretch: 92%;
+}
+.t-lead {
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  line-height: 1.45;
+  letter-spacing: -0.006em;
+  font-weight: 420;
+}
+.t-small {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.t-wordmark {
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.t-num {
+  font-variant-numeric: tabular-nums;
+  font-stretch: 75%;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.measure {
+  max-width: 62ch;
+}
+
+/* ---------- Layout ---------- */
+.shell {
+  width: 100%;
+  max-width: 1480px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ---------- Focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--color-forest);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.surface-dark :focus-visible,
+.focus-light:focus-visible {
+  outline-color: var(--color-emerald);
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 100;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* ---------- Page transition (no navigation delay) ---------- */
+/* Movement only: fading would flash the light page colour through dark sections. */
+@keyframes page-in {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: none;
+  }
+}
+.page-in {
+  animation: page-in 0.6s var(--ease-out-expo) both;
+}
+
+/* ---------- Line-mask reveal helpers (GSAP animates the inner span) ---------- */
+.line-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.line-mask > span {
+  display: block;
+}
+
+/* Hidden until JS runs the entrance; visible immediately without JS or with reduced motion. */
+.js-motion [data-reveal] {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .js-motion [data-reveal] {
+    visibility: visible;
+  }
+}
+
+/* Native form controls */
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+::selection {
+  background: var(--color-forest);
+  color: var(--color-paper);
+}
+
+/* If the entrance script never runs (blocked JS chunk, slow device), show content anyway. */
+.js-motion.motion-timeout [data-reveal] {
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
 }
